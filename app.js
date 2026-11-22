@@ -36,8 +36,6 @@ const path = (kind, id) =>
 const link = (kind, id, label) =>
   '<a href="' + path(kind, id) + '">' + escape(label) + "</a>";
 const label = (k) => names[k] || pretty(k.replace(/^other:/, ""));
-const badge = (kind) =>
-  '<span class="symbol ' + kind + '">' + icon(kind, 19) + "</span>";
 const dialog = $("#dialog");
 const content = $("#content");
 let world,
@@ -71,13 +69,6 @@ function install(data) {
       Number(b.id) - Number(a.id),
   );
   years = timeline.filter((x) => Number.isFinite(x.year)).map((x) => x.year);
-  $("#worldfoot").innerHTML =
-    icon("globe", 23) +
-    "<div>" +
-    escape(world.name) +
-    "<small>" +
-    (world.demo ? "Example world" : "Imported world") +
-    "</small></div>";
 }
 function lookup(k, id) {
   if (!tables.has(k)) return;
@@ -107,8 +98,6 @@ function navigation(active) {
           '" ' +
           (active === k ? 'class="active" aria-current="page"' : "") +
           ">" +
-          icon(k) +
-          " " +
           escape(label(k)) +
           "</a>",
       )
@@ -117,40 +106,46 @@ function navigation(active) {
     .filter(([k, v]) => v.length && !mainKinds.includes(k) && k !== "events")
     .map(([k]) => k);
   $("#nav").innerHTML =
-    group("World atlas", ["overview", "events", "stats"]) +
+    group("Navigation", ["overview", "events", "stats"]) +
     group("Encyclopedia", mainKinds) +
     (extra.length ? group("More records", extra) : "");
-  $("#crumb").textContent = label(active);
 }
 function pagehead(k, heading, sub = "") {
+  const stats = k === "stats";
+  const tab = stats
+    ? '<a href="#overview">Article</a>'
+    : '<span aria-current="page">' +
+      (tables.has(k) && !location.hash.split("?")[0].includes("/")
+        ? "Index"
+        : "Article") +
+      "</span>";
   return (
-    '<div class="pagehead"><div class="eyebrow">' +
-    icon(k, 15) +
-    " World encyclopedia</div><h1>" +
+    '<div class="pagehead"><h1>' +
     escape(heading) +
-    "</h1>" +
+    '</h1><div class="tabs">' +
+    tab +
+    (stats
+      ? '<span aria-current="page">Statistics</span>'
+      : '<a href="#stats">Statistics</a>') +
+    '<button data-sources>Sources</button></div><div class="byline">From Legends Wiki, the Dwarf Fortress encyclopedia</div>' +
     (sub ? '<p class="muted">' + escape(sub) + "</p>" : "") +
     "</div>"
   );
 }
+function countLink(k) {
+  return link(
+    k,
+    undefined,
+    number(world[k].length) +
+      " " +
+      (k === "events" ? "recorded events" : label(k).toLowerCase()),
+  );
+}
 function metrics() {
   return (
-    '<div class="metrics">' +
-    ["figures", "entities", "sites", "events"]
-      .map(
-        (k) =>
-          '<a class="metric" href="' +
-          path(k) +
-          '">' +
-          badge(k) +
-          "<strong>" +
-          number(world[k].length) +
-          "</strong><label>" +
-          (k === "events" ? "Recorded events" : label(k)) +
-          "</label></a>",
-      )
-      .join("") +
-    "</div>"
+    "<p>The world archive contains " +
+    [...mainKinds, "events"].map(countLink).join(" · ") +
+    ".</p>"
   );
 }
 function chart() {
@@ -268,47 +263,124 @@ function historyPanel() {
   );
 }
 function overview() {
-  const meta =
-    "<span>" +
-    icon("calendar", 15) +
-    (years.length
-      ? "Years " + years.at(-1) + "–" + years[0]
-      : "Undated world") +
-    "</span><span>" +
-    icon("book", 15) +
-    (world.demo
-      ? "Example world"
-      : world.files.length +
-        " source file" +
-        (world.files.length === 1 ? "" : "s")) +
-    "</span>";
+  const name = escape(pretty(world.name));
+  const alt = escape(world.alternateName);
+  const dateRange = years.length ? years.at(-1) + "–" + years[0] : "Undated";
+  const origin = world.demo
+    ? "Example world"
+    : world.files.length +
+      " source file" +
+      (world.files.length === 1 ? "" : "s");
+  const facts = [
+    ["World history", dateRange],
+    [
+      "Historical figures",
+      link("figures", undefined, number(world.figures.length)),
+    ],
+    ["Sites", link("sites", undefined, number(world.sites.length))],
+    ["Events", link("events", undefined, number(world.events.length))],
+    ["Archive", escape(origin)],
+  ];
+  const infobox =
+    '<div class="infobox"><div class="info-title">' +
+    name +
+    "</div>" +
+    (alt ? '<div class="info-subtitle">' + alt + "</div>" : "") +
+    '<figure><img src="assets/fortress.svg" alt="Engraving of a fortress at a mountain pass"><figcaption>A dwarven mountain fortress (illustration)</figcaption></figure>' +
+    '<dl class="facts">' +
+    facts
+      .map(([key, val]) => "<dt>" + key + "</dt><dd>" + val + "</dd>")
+      .join("") +
+    "</dl></div>";
+  const records = (k) =>
+    world[k].slice(0, 3).map((r) => link(k, r.id, title(k, r)));
+  const series = (items) =>
+    new Intl.ListFormat("en", { style: "long", type: "conjunction" }).format(
+      items,
+    );
+  const earliest = timeline[years.length - 1] || timeline.at(-1);
   const latest = timeline
-    .slice(0, 3)
+    .slice(0, 4)
     .map(
       (e) =>
-        '<div class="story"><div><small>' +
+        "<li>" +
         (e.year == null ? "Undated" : "Year " + e.year) +
-        "</small>" +
+        " — " +
         link("events", e.id, title("events", e)) +
-        "</div></div>",
+        "</li>",
     )
     .join("");
   return (
-    '<section class="hero"><img src="assets/fortress.svg" alt=""><div class="heroCopy"><div class="eyebrow">' +
-    icon("globe", 15) +
-    " World atlas</div><h1>" +
-    escape(pretty(world.name)) +
-    "</h1><p>" +
-    escape(world.alternateName || "A Dwarf Fortress world") +
-    '</p><div class="meta">' +
-    meta +
-    '</div></div></section><div class="sectionhead"><h2>World at a glance</h2><a class="textlink" href="#stats">View statistics</a></div>' +
-    metrics() +
-    '<div class="panels">' +
-    historyPanel() +
-    '<section class="panel"><div class="paneltop"><h2>Recent chronicles</h2><a class="textlink" href="#events">Timeline</a></div><p class="sub">The latest entries in world history</p>' +
-    (latest || "<p>No events recorded.</p>") +
-    "</section></div>"
+    pagehead("overview", pretty(world.name)) +
+    '<article class="wiki">' +
+    infobox +
+    "<p><b>" +
+    name +
+    "</b>" +
+    (alt ? " (<i>" + alt + "</i>)" : "") +
+    " is " +
+    (world.demo ? "an example" : "a") +
+    " world in <i>Dwarf Fortress</i>. " +
+    (years.length
+      ? "Its recorded history spans year " +
+        years.at(-1) +
+        " through year " +
+        years[0] +
+        ". "
+      : "") +
+    "The archive documents " +
+    series(["figures", "entities", "sites", "artifacts"].map(countLink)) +
+    ".</p>" +
+    "<h2>History</h2><p>" +
+    (earliest
+      ? "The " +
+        link("events", undefined, "world chronicle") +
+        " contains " +
+        countLink("events") +
+        (earliest.year == null
+          ? ". One entry is "
+          : ". Its earliest dated entry is ") +
+        link("events", earliest.id, title("events", earliest)) +
+        (earliest.year == null ? "" : " in year " + earliest.year) +
+        "."
+      : "The archive contains no recorded events.") +
+    "</p>" +
+    (latest ? "<h3>Recent events</h3><ul>" + latest + "</ul>" : "") +
+    "<h2>Sites and inhabitants</h2><p>" +
+    (world.sites.length
+      ? "Places recorded in the " +
+        link("sites", undefined, "site index") +
+        " include " +
+        series(records("sites")) +
+        ". "
+      : "There are no sites in this export. ") +
+    (world.figures.length
+      ? "Among its " +
+        link("figures", undefined, "historical figures") +
+        " are " +
+        series(records("figures")) +
+        "."
+      : "") +
+    "</p>" +
+    (world.entities.length
+      ? "<p>The " +
+        link("entities", undefined, "entity index") +
+        " lists groups including " +
+        series(records("entities")) +
+        ".</p>"
+      : "") +
+    (world.artifacts.length
+      ? "<h2>Artifacts</h2><p>The archive records " +
+        countLink("artifacts") +
+        ", including " +
+        series(records("artifacts")) +
+        ".</p>"
+      : "") +
+    "<h2>See also</h2><ul><li>" +
+    link("stats", undefined, "Historical activity and world statistics") +
+    "</li><li>" +
+    link("events", undefined, "Timeline of recorded events") +
+    "</li></ul></article>"
   );
 }
 function breakdown(kind) {
@@ -338,7 +410,6 @@ function breakdown(kind) {
 function row(k, r) {
   return (
     '<div class="row">' +
-    badge(k) +
     "<div>" +
     link(k, r.id, title(k, r)) +
     "<small>" +
@@ -497,17 +568,11 @@ function article(k, r) {
     )
     .join("");
   return (
-    '<a class="textlink" href="' +
-    path(k) +
-    '">' +
-    escape(label(k)) +
-    "</a>" +
     pagehead(k, head) +
     '<section class="article wiki"><div class="infobox">' +
-    badge(k) +
-    "<h2>" +
+    '<div class="info-title">' +
     escape(pretty(r.name)) +
-    '</h2><dl class="facts">' +
+    '</div><dl class="facts">' +
     factList +
     '</dl></div><p class="lead">' +
     lead +
@@ -534,7 +599,11 @@ function article(k, r) {
 function render(reset = true) {
   let route;
   try {
-    route = location.hash.slice(1).split("/").map(decodeURIComponent);
+    route = location.hash
+      .slice(1)
+      .split("?")[0]
+      .split("/")
+      .map(decodeURIComponent);
   } catch {
     route = [];
   }
@@ -580,26 +649,57 @@ function render(reset = true) {
   document.title =
     (id !== undefined && lookup(k, id) ? title(k, lookup(k, id)) : label(k)) +
     " · Legends Wiki";
+  const base = location.hash.split("?")[0] || "#overview";
+  const headings = [...content.querySelectorAll("h2")];
+  const section = new URLSearchParams(location.hash.split("?")[1]).get(
+    "section",
+  );
+  const entries = headings.map((h, i) => {
+    h.id = "section-" + (i + 1);
+    return (
+      '<a href="' +
+      escape(base) +
+      "?section=" +
+      (i + 1) +
+      '">' +
+      escape(h.textContent) +
+      "</a>"
+    );
+  });
+  $("#contents").innerHTML =
+    '<div class="navgroup">Contents</div><a href="' +
+    escape(base) +
+    '">(Top)</a>' +
+    entries.join("");
   document.body.classList.remove("open");
-  if (reset) window.scrollTo(0, 0);
+  if (
+    reset &&
+    section &&
+    /^\d+$/.test(section) &&
+    document.getElementById("section-" + section)
+  )
+    document.getElementById("section-" + section).scrollIntoView();
+  else if (reset) window.scrollTo(0, 0);
 }
 function modal(titleText, html) {
   $("#dialogbody").innerHTML =
-    '<div class="paneltop"><h2>' +
+    '<div class="paneltop"><h2 id="dialog-title">' +
     escape(titleText) +
     '</h2><button class="close" aria-label="Close dialog">×</button></div>' +
     html;
   if (!dialog.open) dialog.showModal();
 }
-function search() {
+function search(initial = "") {
   if (busy) return;
   modal(
     "Search this world",
     '<input id="search" type="search" placeholder="Search figures, sites, events…" aria-label="Search this world"><div id="results"></div>',
   );
+  $("#search").value = initial;
   $("#search").focus();
   $("#results").innerHTML =
     '<p class="muted">Search by article name, type, or record ID.</p>';
+  if (initial) searchResults(initial);
 }
 function searchResults(q) {
   const result = [];
@@ -756,19 +856,25 @@ async function loadFiles(files) {
     single = null;
   }
 }
-$("#find").innerHTML =
-  icon("search", 16) + "<span>Search this world</span><kbd>/</kbd>";
-$("#import").innerHTML = icon("upload", 16) + " Import world";
+$("#find").innerHTML = icon("search", 20);
+$("#site-search").onsubmit = (event) => {
+  event.preventDefault();
+  search($("#quick-search").value);
+};
 $(".skip").onclick = (event) => {
   event.preventDefault();
   content.focus();
 };
-$("#find").onclick = search;
+$("#find").onclick = () => search();
 $("#import").onclick = () => {
   single = null;
   importDialog();
 };
-$("#menu").onclick = () => document.body.classList.toggle("open");
+$("#menu").onclick = () => {
+  if (matchMedia("(max-width: 800px)").matches)
+    document.body.classList.toggle("open");
+  else document.body.classList.toggle("hide-sidebar");
+};
 document.addEventListener("keydown", (e) => {
   if (
     e.key === "/" &&
@@ -789,9 +895,23 @@ dialog.addEventListener("cancel", (e) => {
   if (busy) e.preventDefault();
 });
 document.addEventListener("click", (e) => {
+  const contentsLink = e.target.closest("#contents a");
+  if (contentsLink && contentsLink.hash === location.hash) {
+    e.preventDefault();
+    render();
+  }
   const button = e.target.closest("button");
   if (e.target.closest("#dialog a")) dialog.close();
   if (!button) return;
+  if (button.hasAttribute("data-sources"))
+    modal(
+      "Sources",
+      world.demo
+        ? "<p>The example world uses fictional records generated for Legends Wiki.</p>"
+        : "<p>Records in this world come from the following exports.</p><ul>" +
+            world.files.map((f) => "<li>" + escape(f) + "</li>").join("") +
+            "</ul>",
+    );
   if (button.matches(".close")) dialog.close();
   if (button.id === "retry") importDialog();
   if (button.id === "folder") $("#dirInput").click();

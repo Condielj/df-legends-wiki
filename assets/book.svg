@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="10" fill="#275044"/><g fill="none" stroke="#ecd4a2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13c7-2 13-1 19 3 6-4 12-5 19-3v23c-8-2-13-1-19 3-6-4-12-5-19-3z"/><path d="M24 16v23M10 18l4-4 5 7M30 21l4-6 5 5M10 26q5-1 9 2m10 0q5-3 9-2"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><radialGradient id="stone" cx=".35" cy=".3" r=".78"><stop stop-color="#fbfbfa"/><stop offset=".72" stop-color="#d4d5d3"/><stop offset="1" stop-color="#909391"/></radialGradient><clipPath id="edge"><circle cx="32" cy="32" r="29"/></clipPath></defs>
+<circle cx="32" cy="32" r="29" fill="url(#stone)" stroke="#777b78"/>
+<g clip-path="url(#edge)" fill="none" stroke="#888d88" stroke-width=".8"><ellipse cx="32" cy="32" rx="19" ry="29"/><ellipse cx="32" cy="32" rx="9" ry="29"/><path d="M4 21q28 11 56 0M2 35q30 13 60-1M7 48q25 12 50 0M11 12q21 9 42-1"/></g>
+<g fill="#e0e1de" stroke="#545852" stroke-linejoin="round"><path d="m4 40 14-22 9 14 11-22 21 32-5 9-18 6-22-7Z"/><path d="m10 32 8-14 8 13-6-5-3 3-1-3zm19-4 9-18 13 20-11-10-2 5-3-4Z" fill="#fafbf9"/></g>
+<path d="m21 46 1-16h4v3h4v-4h4v4h4v-3h4l1 16-11 6z" fill="#a2a59e" stroke="#4e514c"/><path d="M28 49V40l4-4 4 4v9l-4 2Z" fill="#454842"/><path d="m10 44 9 6m-4-8 4 2m25-8 6 5m-5-1 8 6M19 53l8 3m17-5 8-3" fill="none" stroke="#676b64"/>
+</svg>

@@ -3,36 +3,46 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#153b32" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Legends Wiki</title>
     <link rel="icon" href="assets/book.svg" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <a class="skip" href="#content">Skip to content</a>
-    <aside id="sidebar">
+    <header class="masthead">
+      <button id="menu" aria-label="Toggle navigation" aria-controls="sidebar">
+        ☰
+      </button>
       <a class="brand" href="#overview"
-        ><img src="assets/book.svg" alt="" width="42" height="42" /><span
-          >Legends Wiki<small>DWARF FORTRESS</small></span
+        ><img src="assets/book.svg" alt="" width="55" height="55" /><span
+          >Legends Wiki<small>The Dwarf Fortress encyclopedia</small></span
         ></a
       >
-      <nav id="nav" aria-label="World navigation"></nav>
-      <div id="worldfoot"></div>
-    </aside>
-    <div class="shell">
-      <header>
-        <button id="menu" aria-label="Toggle navigation">☰</button>
-        <div class="crumb">
-          <span>World atlas</span> <b>/</b> <strong id="crumb">Overview</strong>
-        </div>
-        <button id="find"></button><button class="primary" id="import"></button>
-      </header>
-      <main id="content" tabindex="-1"></main>
-      <footer>
-        Legends Wiki <span>·</span> Dwarf Fortress world encyclopedia
-      </footer>
+      <form id="site-search" role="search">
+        <input
+          id="quick-search"
+          type="search"
+          aria-label="Search Legends Wiki"
+          placeholder="Search Legends Wiki"
+        /><button>Search</button>
+      </form>
+      <button id="find" aria-label="Search Legends Wiki"></button
+      ><button id="import">Import world</button>
+    </header>
+    <div class="layout">
+      <aside id="sidebar">
+        <nav id="contents" aria-label="Contents"></nav>
+        <nav id="nav" aria-label="World navigation"></nav>
+      </aside>
+      <div class="shell">
+        <main id="content" tabindex="-1"></main>
+        <footer>Legends Wiki · Dwarf Fortress world encyclopedia</footer>
+      </div>
     </div>
-    <dialog id="dialog"><div id="dialogbody"></div></dialog>
+    <dialog id="dialog" aria-labelledby="dialog-title">
+      <div id="dialogbody"></div>
+    </dialog>
     <script type="module" src="app.js"></script>
   </body>
 </html>
