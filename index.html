@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#153b32" />
+    <title>Legends Wiki</title>
+    <link rel="icon" href="assets/book.svg" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+    <aside id="sidebar">
+      <a class="brand" href="#overview"
+        ><img src="assets/book.svg" alt="" width="42" height="42" /><span
+          >Legends Wiki<small>DWARF FORTRESS</small></span
+        ></a
+      >
+      <nav id="nav" aria-label="World navigation"></nav>
+      <div id="worldfoot"></div>
+    </aside>
+    <div class="shell">
+      <header>
+        <button id="menu" aria-label="Toggle navigation">☰</button>
+        <div class="crumb">
+          <span>World atlas</span> <b>/</b> <strong id="crumb">Overview</strong>
+        </div>
+        <button id="find"></button><button class="primary" id="import"></button>
+      </header>
+      <main id="content" tabindex="-1"></main>
+      <footer>
+        Legends Wiki <span>·</span> Dwarf Fortress world encyclopedia
+      </footer>
+    </div>
+    <dialog id="dialog"><div id="dialogbody"></div></dialog>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
