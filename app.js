@@ -627,14 +627,38 @@ function importDialog() {
   if (busy) return;
   modal(
     "Import a world",
-    '<p>Select the folder containing your Legends export. Matching Legends and DFHack Legends Plus XML files are imported together.</p><div class="options"><button class="primary" id="folder">Choose export folder</button><button id="files">Choose XML files</button></div><input hidden type="file" id="dirInput" webkitdirectory multiple><input hidden type="file" id="fileInput" accept=".xml" multiple><div id="choices"></div><p id="status" role="status" class="muted">Your files are processed on this device.</p>',
+    '<p>Choose an export folder, then select a snapshot to import. The viewer lists snapshots using filenames.</p><div class="options"><button class="primary" id="folder">Choose export folder</button><button id="files">Choose XML files</button></div><input hidden type="file" id="dirInput" webkitdirectory multiple><input hidden type="file" id="fileInput" accept=".xml" multiple><div id="choices"></div><p id="status" role="status" class="muted">Your files are processed on this device.</p>',
   );
 }
 let groups = [],
   single;
+function snapshotButton(group, index) {
+  const slash = group.label.lastIndexOf("/");
+  const directory = group.label.slice(0, slash);
+  const prefix = group.label.slice(slash + 1);
+  const dated = /^(.+)-(\d+)-(\d{2})-(\d{2})$/.exec(prefix);
+  const save = dated ? dated[1] : prefix;
+  const date = dated ? dated.slice(2).join("-") : "";
+  const formats = group.files
+    .map((file) =>
+      /_plus\.xml$/i.test(file.name) ? "Legends Plus" : "Legends",
+    )
+    .join(" + ");
+  const detail = [date, formats, directory].filter(Boolean).join(" · ");
+  return (
+    '<button class="snapshot" data-group="' +
+    index +
+    '"><strong>' +
+    escape(save) +
+    "</strong><small>" +
+    escape(detail) +
+    "</small></button>"
+  );
+}
 function choose(files, folder = false) {
   const candidates = groupExports(files);
-  if (folder && single) {
+  const findingCompanions = folder && single;
+  if (findingCompanions) {
     const match = candidates.filter((g) =>
       g.files.some((f) => f.name === single.name && f.size === single.size),
     );
@@ -646,7 +670,10 @@ function choose(files, folder = false) {
     groups = match;
     single = null;
   } else groups = candidates;
+  $("#choices").replaceChildren();
+  $("#status").textContent = "";
   if (!groups.length) {
+    single = null;
     $("#status").textContent = "No Legends XML exports were found.";
     return;
   }
@@ -659,21 +686,12 @@ function choose(files, folder = false) {
     return;
   }
   single = null;
-  if (groups.length === 1) return loadFiles(groups[0].files);
+  if (groups.length === 1 && (!folder || findingCompanions))
+    return loadFiles(groups[0].files);
   $("#choices").innerHTML =
-    "<p>Choose a world export</p>" +
-    groups
-      .map(
-        (g, i) =>
-          '<button class="row" data-group="' +
-          i +
-          '">' +
-          escape(g.label) +
-          " · " +
-          g.files.length +
-          " files</button>",
-      )
-      .join("");
+    "<h3>Choose a snapshot to import</h3>" +
+    groups.map(snapshotButton).join("");
+  $("#status").textContent = "Select a snapshot to read its XML files.";
 }
 async function database() {
   return new Promise((resolve, reject) => {
@@ -701,6 +719,8 @@ async function cached(mode, data) {
 async function loadFiles(files) {
   if (busy) return;
   busy = true;
+  groups = [];
+  single = null;
   hydration++;
   modal(
     "Reading world history",
@@ -759,6 +779,11 @@ document.addEventListener("keydown", (e) => {
     search();
   }
   if (e.key === "Escape") document.body.classList.remove("open");
+});
+dialog.addEventListener("close", () => {
+  groups = [];
+  single = null;
+  $("#dialogbody").replaceChildren();
 });
 dialog.addEventListener("cancel", (e) => {
   if (busy) e.preventDefault();

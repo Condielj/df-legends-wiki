@@ -19,7 +19,7 @@ The launcher reads the selected file's directory and includes the matching `-leg
 ## Import from the browser
 
 1. Select **Import world → Choose export folder**.
-2. Choose the folder with your Legends or DFHack Legends Plus export. If it contains several world snapshots, select one.
+2. Choose the folder with your Legends or DFHack Legends Plus exports. The picker groups filenames by save, export date, and directory. Select a snapshot to begin reading its XML files, including its matching companion.
 3. Open an article, follow a linked record, or use **/** to search. **Timeline** lists events in reverse chronological order. **Statistics** charts historical activity and record types.
 
 You can also select individual XML files. Browsers need folder access to discover siblings of a single selected file. The viewer offers to find companions or open that file alone.
