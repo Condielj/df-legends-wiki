@@ -2,7 +2,9 @@
 
 A local-first encyclopedia for Dwarf Fortress Legends exports. Start with an illustrated example world, or load your own and follow links between historical figures, sites, entities, artifacts, and the events they appear in.
 
-## Open the viewer
+[Open the live viewer](https://condielj.github.io/df-legends-wiki/)
+
+## Run locally
 
 With Node.js 22 or newer, run `npm start` and open the local URL printed in the terminal. The viewer has no install or build step.
 
