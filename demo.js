@@ -123,6 +123,10 @@ export function exampleWorld() {
       humans: (102 + i * 27) % 470,
     };
   }
+  for (const counts of Object.values(census.sites)) {
+    for (const [species, n] of Object.entries(counts))
+      census.civilized[species] = (census.civilized[species] ?? 0) + n;
+  }
   const transferIds = [];
   for (const [year, former, next] of [
     [89, "0", "1"],

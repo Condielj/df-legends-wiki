@@ -796,3 +796,23 @@ progress {
   width: auto;
   min-width: 0;
 }
+.census-totals {
+  max-width: 48rem;
+}
+.census-totals td:last-child {
+  position: relative;
+  isolation: isolate;
+  width: 55%;
+  font-variant-numeric: tabular-nums;
+}
+.census-totals td i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  background: #d9e7ed;
+  z-index: -1;
+}
+.census-count {
+  font-weight: 600;
+}

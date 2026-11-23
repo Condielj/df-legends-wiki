@@ -1,3 +1,4 @@
+import { population } from "./census.js";
 import { atlasModel, mountAtlas, warSection } from "./atlas.js";
 import { exampleWorld } from "./demo.js";
 import { groupExports, importWorld } from "./importer.js";
@@ -291,6 +292,12 @@ function overview() {
     ["Events", link("events", undefined, number(world.events.length))],
     ["Archive", escape(origin)],
   ];
+  const total = civilizedTotal();
+  if (total !== null)
+    facts.splice(1, 0, [
+      "Civilized population",
+      '<a href="#stats?section=1">' + number(total) + "</a>",
+    ]);
   const infobox =
     '<div class="infobox"><div class="info-title">' +
     name +
@@ -393,6 +400,74 @@ function overview() {
     "</li></ul></article>"
   );
 }
+function civilizedTotal() {
+  const counts = world.census?.civilized;
+  return counts && Object.keys(counts).length ? population(counts) : null;
+}
+function censusSection(siteId) {
+  const census = world.census;
+  if (!census)
+    return siteId === undefined
+      ? "<h2>Population</h2><p>Import the matching world_sites_and_pops.txt with the Legends XML to show settlement and species counts.</p>"
+      : "";
+  const local = siteId !== undefined;
+  const rows = local ? census.sites[siteId] : census.civilized;
+  if (local && !rows) return "";
+  const ranked = Object.entries(rows ?? {}).sort(
+    (a, b) => (b[1] ?? -1) - (a[1] ?? -1),
+  );
+  const total = local ? population(rows) : civilizedTotal();
+  const url =
+    "#atlas" +
+    (local ? "/" + encodeURIComponent(siteId) : "") +
+    "?layer=population";
+  const text = local
+    ? "recorded individuals, including animals"
+    : "civilized inhabitants";
+  const summary =
+    total === null
+      ? ""
+      : "<strong>" +
+        number(total) +
+        "</strong> " +
+        text +
+        (census.year == null ? " at export" : " in year " + census.year) +
+        ". ";
+  const peak = ranked[0]?.[1] || 1;
+  return (
+    "<h2>Population</h2><p>" +
+    summary +
+    '<a href="' +
+    url +
+    '">View the population map</a>.</p>' +
+    (ranked.length
+      ? '<table class="atlas-table census-totals"><caption>' +
+        (local ? "Site census" : "Civilized world population") +
+        " by species</caption><thead><tr><th>Species</th><th>Count</th></tr></thead><tbody>" +
+        ranked
+          .map(
+            ([species, count]) =>
+              '<tr><td><a href="' +
+              url +
+              "&amp;species=" +
+              encodeURIComponent(species) +
+              '">' +
+              escape(pretty(species)) +
+              '</a></td><td><span class="census-count">' +
+              (count === null ? "Unnumbered" : number(count)) +
+              "</span>" +
+              (count === null
+                ? ""
+                : '<i aria-hidden="true" style="width:' +
+                  (100 * count) / peak +
+                  '%"></i>') +
+              "</td></tr>",
+          )
+          .join("") +
+        "</tbody></table>"
+      : "")
+  );
+}
 function worldReport() {
   const model = worldAtlas();
   const sites = [...model.sites.values()]
@@ -406,7 +481,9 @@ function worldReport() {
     .filter((c) => c.type === "war")
     .sort((a, b) => b.year - a.year);
   return (
-    '<section class="wiki"><h2>Political control</h2><p>' +
+    '<section class="wiki">' +
+    censusSection() +
+    "<h2>Political control</h2><p>" +
     link("atlas", undefined, "Open the political atlas") +
     " to follow settlement allegiance year by year.</p>" +
     (sites.length
@@ -426,11 +503,6 @@ function worldReport() {
           .join("") +
         "</ul>"
       : "") +
-    "<h2>Population</h2><p>" +
-    (world.census
-      ? '<a href="#atlas?layer=population">Explore the settlement census by species and population</a>.'
-      : "This export has no settlement census. Add the matching world_sites_and_pops.txt beside the Legends XML and import that snapshot to see population by settlement and species.") +
-    "</p>" +
     (wars.length
       ? "<h2>Wars</h2><ul>" +
         wars
@@ -651,6 +723,7 @@ function article(k, r) {
         encodeURIComponent(r.id) +
         '">Locate on the political atlas</a></p>'
       : "") +
+    (k === "sites" ? censusSection(r.id) : "") +
     (k === "collections" && r.type === "war"
       ? warSection(worldAtlas(), r, { link, escape, pretty })
       : "") +
