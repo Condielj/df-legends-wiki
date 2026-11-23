@@ -1,3 +1,4 @@
+import { censusSuffix, parseCensus } from "./census.js";
 import sax from "./vendor/sax.mjs";
 
 const sections = {
@@ -186,6 +187,12 @@ export async function parseWorld(files, progress = () => {}) {
   const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
   let loadedBytes = 0;
   for (const file of files) {
+    if (censusSuffix.test(file.name)) {
+      world.census = parseCensus(await file.text(), file.name);
+      loadedBytes += file.size;
+      world.files.push(file.name);
+      continue;
+    }
     const parser = taggedParser(
       (section, fields) => {
         if (!tables.has(section)) tables.set(section, new Map());

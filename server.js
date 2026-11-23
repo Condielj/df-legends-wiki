@@ -15,6 +15,8 @@ const assets = new Set([
   "demo.js",
   "style.css",
   "worker.js",
+  "atlas.js",
+  "census.js",
   "importer.js",
   "assets/fortress.svg",
   "assets/book.svg",

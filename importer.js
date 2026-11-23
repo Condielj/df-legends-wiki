@@ -1,11 +1,20 @@
+import { censusSuffix } from "./census.js";
 // A group represents one export snapshot. Save names can contain dashes and two
 // directories may contain different worlds with identical save names.
 export function groupExports(files) {
   const groups = new Map();
   const list = Array.from(files);
+  const companions = [];
   for (const file of list) {
     const path = file.webkitRelativePath || file.name;
     const directory = path.slice(0, path.lastIndexOf("/") + 1);
+    if (censusSuffix.test(file.name)) {
+      companions.push({
+        file,
+        key: directory + (file.name.replace(censusSuffix, "") || "legends"),
+      });
+      continue;
+    }
     const match = /^(?:(.+)-)?legends(_plus)?\.xml$/i.exec(file.name);
     if (!match && !(list.length === 1 && /\.xml$/i.test(file.name))) continue;
     const prefix = match
@@ -22,6 +31,7 @@ export function groupExports(files) {
         Number(/_plus\.xml$/i.test(b.name)),
     );
   }
+  for (const { file, key } of companions) groups.get(key)?.files.push(file);
   return [...groups.values()];
 }
 

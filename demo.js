@@ -101,6 +101,71 @@ export function exampleWorld() {
       refs: links.map(([kind, r]) => ({ kind, id: r.id, role: kind })),
     };
   });
+  // Fictional map and census for the example world's atlas.
+  const census = { year: 250, sites: {}, civilized: {} };
+  for (const [i, site] of sites.entries()) {
+    site.fields.coords =
+      ((i * 37) % 101) + "," + ((i * i * 13 + 11 * i + 7) % 97);
+    const owner = entities[i % entities.length];
+    events.push({
+      id: String(events.length),
+      year: 1 + (i % 20),
+      type: "created site",
+      name: site.name + " was established by " + owner.name,
+      fields: { site_id: site.id, civ_id: owner.id },
+      refs: [
+        { kind: "sites", id: site.id, role: "Site" },
+        { kind: "entities", id: owner.id, role: "Civilization" },
+      ],
+    });
+    census.sites[site.id] = {
+      dwarves: (127 + i * 173) % 2100,
+      humans: (102 + i * 27) % 470,
+    };
+  }
+  const transferIds = [];
+  for (const [year, former, next] of [
+    [89, "0", "1"],
+    [94, "1", "2"],
+  ]) {
+    const id = String(events.length);
+    transferIds.push(id);
+    events.push({
+      id,
+      year,
+      type: "site taken over",
+      name: "Coppervault changed hands",
+      fields: { site_id: "0", defender_civ_id: former, attacker_civ_id: next },
+      refs: [
+        { kind: "sites", id: "0", role: "Site" },
+        { kind: "entities", id: next, role: "Attacker" },
+      ],
+    });
+  }
+  const collections = [
+    {
+      id: "0",
+      name: "The War of Coppervault",
+      type: "war",
+      year: 89,
+      fields: {
+        start_year: "89",
+        end_year: "89",
+        aggressor_ent_id: "1",
+        defender_ent_id: "0",
+        eventcol: "1",
+      },
+      refs: [],
+    },
+    {
+      id: "1",
+      name: "The taking of Coppervault",
+      type: "site conquered",
+      year: 89,
+      fields: { site_id: "0", war_eventcol: "0", event: transferIds[0] },
+      refs: [],
+    },
+  ];
   return {
     name: "The Amber Realms",
     alternateName: "Amug Adil",
@@ -110,7 +175,8 @@ export function exampleWorld() {
     artifacts,
     events,
     files: [],
-    collections: [],
+    collections,
+    census,
     eras: [],
     regions: [],
     other: {},

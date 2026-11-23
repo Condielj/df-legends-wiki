@@ -604,3 +604,195 @@ progress {
     font-size: 1.35rem;
   }
 }
+.atlas-controls,
+.atlas-years {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+.atlas-controls label,
+.atlas-years label {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.atlas-controls select {
+  max-width: min(52vw, 230px);
+}
+.atlas-years {
+  padding: 10px 0;
+  border-block: 1px solid var(--line);
+}
+.atlas-years label:first-child {
+  flex: 1;
+}
+.atlas-years input[type="range"] {
+  width: 100%;
+  min-width: 80px;
+  accent-color: #36c;
+}
+.atlas-years output {
+  font-weight: bold;
+  min-width: 3ch;
+}
+.atlas-years [hidden] {
+  display: none;
+}
+.atlas-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 29%);
+  gap: 16px;
+  align-items: start;
+}
+.atlas-spread figure {
+  margin: 0;
+  background: #f8f9fa;
+  border: 1px solid var(--border);
+}
+.atlas-spread figcaption {
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem;
+  padding: 7px;
+}
+.atlas-spread svg {
+  width: 100%;
+  display: block;
+  background: #f8f7f1;
+}
+.atlas-grid path {
+  stroke: #d9d9cf;
+  stroke-width: 0.7;
+}
+.atlas-grid text {
+  font: 9px system-ui;
+  fill: #6d7167;
+}
+.atlas-spread [data-marker] {
+  cursor: pointer;
+}
+.atlas-detail {
+  background: #f8f9fa;
+  border: 1px solid var(--border);
+  padding: 12px;
+  font-size: 0.9rem;
+}
+.atlas-detail h3,
+.atlas-detail h4 {
+  margin: 0 0 4px;
+}
+.atlas-detail h3 {
+  font: 1.35rem var(--serif);
+}
+.atlas-detail p:last-child {
+  margin-bottom: 0;
+}
+.atlas-history,
+.atlas-key {
+  padding-left: 1.2rem;
+}
+.atlas-history li {
+  margin: 0.4em 0;
+}
+.atlas-link,
+.atlas-history button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--link);
+  font-weight: normal;
+}
+.atlas-history .current button {
+  font-weight: bold;
+}
+.atlas-key {
+  columns: 2;
+  list-style: none;
+  padding: 0;
+}
+.atlas-key i {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.atlas-table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  width: 100%;
+  font-size: 0.9rem;
+}
+.atlas-table caption {
+  text-align: left;
+  font-weight: bold;
+}
+.atlas-table td,
+.atlas-table th {
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  text-align: left;
+}
+.atlas-table th {
+  background: #eaecf0;
+}
+.atlas-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+.census-list {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+}
+.census-list dd {
+  margin: 0;
+}
+.atlas-years select {
+  max-width: 190px;
+}
+#atlas-view details {
+  margin: 12px 0;
+}
+#atlas-view summary {
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .atlas-spread {
+    grid-template-columns: 1fr;
+  }
+  .atlas-key {
+    columns: 1;
+  }
+  .atlas-controls {
+    gap: 6px 12px;
+  }
+  .atlas-controls select {
+    font-size: 0.85rem;
+  }
+  .atlas-years {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .atlas-history {
+    margin-bottom: 4px;
+  }
+}
+.atlas-place {
+  font: bold 12px system-ui;
+  pointer-events: none;
+  fill: #202122;
+  stroke: #f8f7f1;
+  stroke-width: 3;
+  paint-order: stroke;
+}
+.atlas-years label:first-child {
+  white-space: nowrap;
+  min-width: 0;
+}
+.atlas-years input[type="range"] {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}

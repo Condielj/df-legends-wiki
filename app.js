@@ -1,3 +1,4 @@
+import { atlasModel, mountAtlas, warSection } from "./atlas.js";
 import { exampleWorld } from "./demo.js";
 import { groupExports, importWorld } from "./importer.js";
 import { icon } from "./icons.js";
@@ -18,6 +19,7 @@ const pretty = (str) =>
 const number = (n) => n.toLocaleString();
 const names = {
   overview: "World overview",
+  atlas: "Political atlas",
   figures: "Historical figures",
   entities: "Entities",
   sites: "Sites",
@@ -50,9 +52,13 @@ let world,
   binCount = 24;
 let busy = false,
   hydration = 0;
-let eventLinks;
+let eventLinks, atlas;
+function worldAtlas() {
+  return (atlas ||= atlasModel(world));
+}
 function install(data) {
   eventLinks = null;
+  atlas = null;
   world = data;
   tables = new Map(
     [...mainKinds, "events", "collections", "regions", "eras"].map((k) => [
@@ -106,19 +112,20 @@ function navigation(active) {
     .filter(([k, v]) => v.length && !mainKinds.includes(k) && k !== "events")
     .map(([k]) => k);
   $("#nav").innerHTML =
-    group("Navigation", ["overview", "events", "stats"]) +
+    group("Navigation", ["overview", "atlas", "events", "stats"]) +
     group("Encyclopedia", mainKinds) +
     (extra.length ? group("More records", extra) : "");
 }
 function pagehead(k, heading, sub = "") {
   const stats = k === "stats";
-  const tab = stats
-    ? '<a href="#overview">Article</a>'
-    : '<span aria-current="page">' +
-      (tables.has(k) && !location.hash.split("?")[0].includes("/")
-        ? "Index"
-        : "Article") +
-      "</span>";
+  const tab =
+    stats || k === "atlas"
+      ? '<a href="#overview">Article</a>'
+      : '<span aria-current="page">' +
+        (tables.has(k) && !location.hash.split("?")[0].includes("/")
+          ? "Index"
+          : "Article") +
+        "</span>";
   return (
     '<div class="pagehead"><h1>' +
     escape(heading) +
@@ -127,6 +134,9 @@ function pagehead(k, heading, sub = "") {
     (stats
       ? '<span aria-current="page">Statistics</span>'
       : '<a href="#stats">Statistics</a>') +
+    (k === "atlas"
+      ? '<span aria-current="page">Atlas</span>'
+      : '<a href="#atlas">Atlas</a>') +
     '<button data-sources>Sources</button></div><div class="byline">From Legends Wiki, the Dwarf Fortress encyclopedia</div>' +
     (sub ? '<p class="muted">' + escape(sub) + "</p>" : "") +
     "</div>"
@@ -383,6 +393,65 @@ function overview() {
     "</li></ul></article>"
   );
 }
+function worldReport() {
+  const model = worldAtlas();
+  const sites = [...model.sites.values()]
+    .map((site) => ({
+      site,
+      n: site.history.filter((h) => h.action === "Taken over").length,
+    }))
+    .filter((x) => x.n)
+    .sort((a, b) => b.n - a.n);
+  const wars = world.collections
+    .filter((c) => c.type === "war")
+    .sort((a, b) => b.year - a.year);
+  return (
+    '<section class="wiki"><h2>Political control</h2><p>' +
+    link("atlas", undefined, "Open the political atlas") +
+    " to follow settlement allegiance year by year.</p>" +
+    (sites.length
+      ? "<h3>Settlements taken over</h3><ul>" +
+        sites
+          .slice(0, 10)
+          .map(
+            ({ site, n }) =>
+              "<li>" +
+              link("atlas", site.id, pretty(site.name)) +
+              " · " +
+              n +
+              " recorded takeover" +
+              (n === 1 ? "" : "s") +
+              "</li>",
+          )
+          .join("") +
+        "</ul>"
+      : "") +
+    "<h2>Population</h2><p>" +
+    (world.census
+      ? '<a href="#atlas?layer=population">Explore the settlement census by species and population</a>.'
+      : "This export has no settlement census. Add the matching world_sites_and_pops.txt beside the Legends XML and import that snapshot to see population by settlement and species.") +
+    "</p>" +
+    (wars.length
+      ? "<h2>Wars</h2><ul>" +
+        wars
+          .map(
+            (w) =>
+              "<li>" +
+              link("collections", w.id, pretty(w.name)) +
+              " · " +
+              escape(w.fields.start_year) +
+              "–" +
+              (w.fields.end_year === "-1"
+                ? "ongoing"
+                : escape(w.fields.end_year)) +
+              "</li>",
+          )
+          .join("") +
+        "</ul>"
+      : "") +
+    "</section>"
+  );
+}
 function breakdown(kind) {
   const counts = new Map();
   for (const r of tables.get(kind))
@@ -577,6 +646,14 @@ function article(k, r) {
     '</dl></div><p class="lead">' +
     lead +
     "</p>" +
+    (k === "sites" && /^\d+,\s*\d+$/.test(r.fields.coords)
+      ? '<p><a href="#atlas/' +
+        encodeURIComponent(r.id) +
+        '">Locate on the political atlas</a></p>'
+      : "") +
+    (k === "collections" && r.type === "war"
+      ? warSection(worldAtlas(), r, { link, escape, pretty })
+      : "") +
     (related.length
       ? "<h2>Recorded history</h2>" +
         related
@@ -608,7 +685,8 @@ function render(reset = true) {
     route = [];
   }
   let [k, id] = route;
-  if (!tables.has(k) && !["overview", "stats"].includes(k)) k = "overview";
+  if (!tables.has(k) && !["overview", "stats", "atlas"].includes(k))
+    k = "overview";
   if (reset) {
     page = 0;
     query = "";
@@ -625,17 +703,30 @@ function render(reset = true) {
           "Article unavailable",
           "This record does not exist in the loaded world.",
         );
+  } else if (k === "atlas") {
+    content.innerHTML =
+      pagehead(k, "Political atlas", pretty(world.name)) +
+      '<div id="atlas-view"></div>';
+    mountAtlas(
+      $("#atlas-view"),
+      worldAtlas(),
+      id,
+      new URLSearchParams(location.hash.split("?")[1]),
+      { link, escape, pretty },
+    );
   } else if (k === "overview") content.innerHTML = overview();
   else if (k === "stats")
     content.innerHTML =
       pagehead(k, "World statistics", pretty(world.name)) +
+      worldReport() +
+      "<details><summary>Archive counts and activity</summary>" +
       metrics() +
       '<div class="panels">' +
       historyPanel() +
       breakdown("events") +
       breakdown("figures") +
       breakdown("sites") +
-      "</div>";
+      "</div></details>";
   else {
     content.innerHTML =
       pagehead(
@@ -727,7 +818,7 @@ function importDialog() {
   if (busy) return;
   modal(
     "Import a world",
-    '<p>Choose an export folder, then select a snapshot to import. The viewer lists snapshots using filenames.</p><div class="options"><button class="primary" id="folder">Choose export folder</button><button id="files">Choose XML files</button></div><input hidden type="file" id="dirInput" webkitdirectory multiple><input hidden type="file" id="fileInput" accept=".xml" multiple><div id="choices"></div><p id="status" role="status" class="muted">Your files are processed on this device.</p>',
+    '<p>Choose an export folder, then select a snapshot to import. The viewer lists snapshots using filenames.</p><div class="options"><button class="primary" id="folder">Choose export folder</button><button id="files">Choose XML files</button></div><input hidden type="file" id="dirInput" webkitdirectory multiple><input hidden type="file" id="fileInput" accept=".xml,.txt" multiple><div id="choices"></div><p id="status" role="status" class="muted">Your files are processed on this device.</p>',
   );
 }
 let groups = [],
@@ -741,7 +832,11 @@ function snapshotButton(group, index) {
   const date = dated ? dated.slice(2).join("-") : "";
   const formats = group.files
     .map((file) =>
-      /_plus\.xml$/i.test(file.name) ? "Legends Plus" : "Legends",
+      /\.txt$/i.test(file.name)
+        ? "Population census"
+        : /_plus\.xml$/i.test(file.name)
+          ? "Legends Plus"
+          : "Legends",
     )
     .join(" + ");
   const detail = [date, formats, directory].filter(Boolean).join(" · ");

@@ -20,9 +20,11 @@ The launcher reads the selected file's directory and includes the matching `-leg
 
 1. Select **Import world → Choose export folder**.
 2. Choose the folder with your Legends or DFHack Legends Plus exports. The picker groups filenames by save, export date, and directory. Select a snapshot to begin reading its XML files, including its matching companion.
-3. Open an article, follow a linked record, or use **/** to search. **Timeline** lists events in reverse chronological order. **Statistics** charts historical activity and record types.
+3. Open an article, follow a linked record, or use **/** to search. **Timeline** lists events in reverse chronological order. **Political atlas** maps settlements by their last recorded allegiance in the selected year. Click a marker for its political history and source events. **Statistics** links contested settlements and wars to the atlas.
 
 You can also select individual XML files. Browsers need folder access to discover siblings of a single selected file. The viewer offers to find companions or open that file alone.
+
+A matching `-world_sites_and_pops.txt` census enables a population map and settlement rankings by species. All-species counts include animals. On the population layer, select an earlier dated census from the same save to compare counts by site ID. Census counts describe the export date.
 
 ## Data and performance
 
